@@ -1,13 +1,18 @@
 package com.example.demo.service.impl;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.jparepositories.AccountCurrentBalanceRepository;
 import com.example.demo.jparepositories.AccountDetailsRepository;
+import com.example.demo.model.AccountCurrentBalance;
 import com.example.demo.model.AccountDetails;
 import com.example.demo.model.PersonalDetails;
 import com.example.demo.service.AuthenticationService;
@@ -17,6 +22,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	
 	@Autowired
 	AccountDetailsRepository accountDetailsRepository;
+	
+	@Autowired
+	AccountCurrentBalanceRepository accountCurrentBalanceRepository;
 
 	Map<String, String> authDetails = new HashMap<String, String>();
 	
@@ -31,15 +39,33 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		return token;
 	}
 
-	@Override
-	public boolean verifyToken(long accountNumber, String token) {
-		// TODO Auto-generated method stub
-		return false;
+	@Transactional
+	public String withdraw(PersonalDetails pd, int amount) {
+		String status = "";
+		try {
+			AccountCurrentBalance acb = pd.getAccountList().get(0).getCurrentBalanceList().get(0);
+			acb.setCurrent_balance(acb.getCurrent_balance().subtract(BigDecimal.valueOf(amount)));
+			accountCurrentBalanceRepository.save(acb);
+			status="success";
+		} catch(Exception e) {
+			throw new RuntimeException("Internal Error");
+		}
+		return status;
 	}
 
-	@Override
-	public void getAccountNumber() {
-		
+	@Transactional
+	public String deposit(PersonalDetails pd, int amount) {
+		String status = "";
+		try {
+		AccountCurrentBalance acb = pd.getAccountList().get(0).getCurrentBalanceList().get(0);
+		acb.setCurrent_balance(acb.getCurrent_balance().add(BigDecimal.valueOf(amount)));
+		accountCurrentBalanceRepository.save(acb);
+		status = "success";
+		} catch(Exception e) {
+			throw new RuntimeException("Internal Error");
+		}
+		return status;
 	}
+
 
 }

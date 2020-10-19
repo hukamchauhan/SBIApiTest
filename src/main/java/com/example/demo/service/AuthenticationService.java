@@ -7,8 +7,7 @@ public interface AuthenticationService {
 	
 	PersonalDetails getDetails(AccountDetails account);
 
-    boolean verifyToken(long accountNumber, String token);
-
-	void getAccountNumber();
-
+	String withdraw(PersonalDetails pd, int amount);
+	
+	String deposit(PersonalDetails pd, int amount);
 }

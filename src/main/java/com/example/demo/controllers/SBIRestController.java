@@ -24,10 +24,6 @@ public class SBIRestController{
 	@Autowired
 	AuthenticationService authenticationService;
 	
-	@Autowired
-	AccountCurrentBalanceRepository accountCurrentBalanceRepository;
-	
-	
 	@RequestMapping(value = "/getAccountDetails", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody PersonalDetails authorize(@RequestBody AccountDetails basicDetails) {
 		PersonalDetails pd = authenticationService.getDetails(basicDetails);
@@ -46,10 +42,11 @@ public class SBIRestController{
 			pd = new PersonalDetails();
 			status = "No Record Found";
 		} else {
-			AccountCurrentBalance acb = pd.getAccountList().get(0).getCurrentBalanceList().get(0);
-			acb.setCurrent_balance(acb.getCurrent_balance().subtract(BigDecimal.valueOf(basicDetails.getAmount())));
-			accountCurrentBalanceRepository.save(acb);
-			status = "success";
+			try {
+				status = authenticationService.withdraw(pd, basicDetails.getAmount());
+			} catch(Exception e) {
+				return e.getMessage();
+			}
 		}
 		return status;
 	}
@@ -62,10 +59,11 @@ public class SBIRestController{
 			pd = new PersonalDetails();
 			status = "No Record Found";
 		} else {
-			AccountCurrentBalance acb = pd.getAccountList().get(0).getCurrentBalanceList().get(0);
-			acb.setCurrent_balance(acb.getCurrent_balance().add(BigDecimal.valueOf(basicDetails.getAmount())));
-			accountCurrentBalanceRepository.save(acb);
-			status = "success";
+			try {
+				status = authenticationService.deposit(pd, basicDetails.getAmount());
+			} catch(Exception e) {
+				return e.getMessage();
+			}
 		}
 		return status;
 	}
